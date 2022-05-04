@@ -3,6 +3,7 @@ import numpy as np
 import os
 import csv
 from os import path
+from progressbar import progressbar
 from config import CONFIG
 
 
@@ -48,7 +49,7 @@ def generate_image(layers, name):
         image = Image.open(path.join("assets", layer))
         background.paste(image, (0, 0), image)
 
-    # Save the final image into desired location
+    # Save the final image
     background.save(name)
 
 
@@ -74,7 +75,7 @@ def generate_data(n):
 def generate_metadata(filepath, data):
     with open(filepath, "w", encoding="UTF8", newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(["#"] + [x["name"] for x in CONFIG])
+        writer.writerow([""] + [x["name"] for x in CONFIG])
         for n, item in enumerate(data):
             traits = [CONFIG[i]["traits"][x] for i, x in enumerate(item)]
             writer.writerow([n] + ["none" if x is None else path.splitext(x)[0] for x in traits])
@@ -105,8 +106,8 @@ def generate_images(name, number):
     generate_metadata(os.path.join("output", name, "metadata.csv"), data)
 
     # Generate the images
-    for i, item in enumerate(data):
-        paths = get_data_item_paths(item)
+    for i in progressbar(range(len(data))):
+        paths = get_data_item_paths(data[i])
         generate_image(paths, path.join(output_path, f"{i}.png"))
 
 
@@ -123,12 +124,9 @@ def main():
             break
 
     print("What is the name of the collection? ")
-    edition_name = input()
-
-    print("Starting task...")
-    generate_images(edition_name, num_avatars)
-    print("Task complete!")
+    name = input()
+    generate_images(name, num_avatars)
 
 
-# Run the main function
-main()
+if __name__ == "__main__":
+    main()
